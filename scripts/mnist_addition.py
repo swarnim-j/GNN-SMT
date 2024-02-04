@@ -183,8 +183,8 @@ def train_epoch(epoch_idx, model, optimizer, train_load, use_satlayer=True,
     
     for batch_idx, (data, target) in tloader:
 
-        (data1, data2), target = data, target.cuda()
-        data1, data2 = data1.cuda(), data2.cuda()
+        (data1, data2), target = data, target
+        data1, data2 = data1, data2
         data = (data1, data2)
         
         optimizer.zero_grad()
@@ -225,8 +225,8 @@ def test_epoch(epoch_idx, model, test_load, use_satlayer=True):
     for batch_idx, (data, target) in tloader:
         with torch.no_grad():
             
-            (data1, data2), target = data, target.cuda()
-            data1, data2 = data1.cuda(), data2.cuda()
+            (data1, data2), target = data, target()
+            data1, data2 = data1, data2
             data = (data1, data2)
                         
             output = model(data, return_sat=use_satlayer, do_maxsat=True)
@@ -260,8 +260,8 @@ def pretrain(model, optimizer, train_load, epochs, clip_norm=None):
         
         for batch_idx, (data, target) in tloader:
 
-            (data1, data2), target = data, target.cuda()
-            data1, data2 = data1.cuda(), data2.cuda()
+            (data1, data2), target = data, target
+            data1, data2 = data1, data2
             data = (data1, data2)
             
             optimizer.zero_grad()
@@ -349,7 +349,7 @@ def main(
     times = []
 
     for i in range(trials):
-        model = MNISTAdder(use_maxsmt=maxsat_backward).cuda()
+        model = MNISTAdder(use_maxsmt=maxsat_backward)
         optimizer = optim.SGD([{'params': model.parameters(), 'lr': lr, 'momentum': 0.9, 'nesterov': True}])
         sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, 
                                                     lr, 

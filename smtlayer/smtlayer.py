@@ -1,3 +1,5 @@
+from typing import Tuple, List
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,7 +33,7 @@ class Z3SolverOp(torch.autograd.Function):
 		return z3.Not(var) if float_v < 0 else var
 	
 	@staticmethod
-	def _z3_var_constraints(v: float, z3_vars: list[z3.BoolRef]) -> list[z3.BoolRef]:
+	def _z3_var_constraints(v: float, z3_vars: List[z3.BoolRef]) -> List[z3.BoolRef]:
 		"""
 			Converts a floating-point vector to a set of z3 literals.
 
@@ -45,7 +47,7 @@ class Z3SolverOp(torch.autograd.Function):
 		return Z3SolverOp._floatvec_to_cons(v, z3_vars)
 
 	@staticmethod
-	def _floatvec_to_cons(v: list[float], vs: list[z3.BoolRef]) -> list[z3.BoolRef]:
+	def _floatvec_to_cons(v: List[float], vs: List[z3.BoolRef]) -> List[z3.BoolRef]:
 		"""
 			Converts a floating-point vector to a set of z3 literals.
 
@@ -58,7 +60,7 @@ class Z3SolverOp(torch.autograd.Function):
 		return [Z3SolverOp._float_to_bool(v[i], vs[i]) for i in range(len(vs))]
 
 	@staticmethod
-	def _get_input_output_vars(mask: torch.Tensor, z3_vars: list[z3.BoolRef], var_ids: list[z3.BoolRef]):
+	def _get_input_output_vars(mask: torch.Tensor, z3_vars: List[z3.BoolRef], var_ids: List[z3.BoolRef]):
 		"""
 			Extracts the input and output z3 variables from a mask.
 
@@ -84,14 +86,14 @@ class Z3SolverOp(torch.autograd.Function):
 	def _assert_and_check(
 		x: torch.Tensor, 
 		mask: torch.Tensor, 
-		z3_vars: list[z3.BoolRef], 
-		var_ids: list[z3.BoolRef],
+		z3_vars: List[z3.BoolRef], 
+		var_ids: List[z3.BoolRef],
 		solver: z3.Solver,
 		opt: z3.Optimize, 
 		do_maxsat: bool=False, 
 		return_cores: bool=False, 
 		is_default_mask: bool=False
-	) -> tuple[torch.Tensor, torch.Tensor]:
+	) -> Tuple[torch.Tensor, torch.Tensor]:
 		"""
 			Assert a batch of floating-point inputs in a z3 solver,
 			and check satisfiability. This is the essential forward pass
@@ -189,7 +191,7 @@ class Z3SolverOp(torch.autograd.Function):
 			return y, x_flip
 
 	@staticmethod
-	def _assert_clauses(theory: list[z3.BoolRef], clause_ids: list[z3.BoolRef], solver: z3.Solver) -> None:
+	def _assert_clauses(theory: List[z3.BoolRef], clause_ids: List[z3.BoolRef], solver: z3.Solver) -> None:
 		"""
 			Assert a list of clauses in a z3 solver.
 
@@ -259,7 +261,7 @@ class Z3SolverOp(torch.autograd.Function):
 	def backward(
 		ctx: torch.autograd.function._ContextMethodMixin, 
 		grad_output: torch.Tensor
-	) -> tuple[torch.Tensor, None, torch.Tensor, None, None, None]:
+	) -> Tuple[torch.Tensor, None, torch.Tensor, None, None, None]:
 		"""
 			Backward pass of the layer. Takes the gradient of the loss
 			with respect to the layer's output, and returns the gradient
@@ -380,7 +382,7 @@ class Z3SolverOp_MaxSat(Z3SolverOp):
 	def backward(
 		ctx: torch.autograd.function._ContextMethodMixin,
 		grad_output: torch.Tensor
-	) -> tuple[torch.Tensor, None, torch.Tensor, None, None, None]:
+	) -> Tuple[torch.Tensor, None, torch.Tensor, None, None, None]:
 		"""
 			Backward pass of the layer. Takes the gradient of the loss
 			with respect to the layer's output, and returns the gradient
@@ -503,10 +505,10 @@ class SMTLayer(torch.nn.Module):
 		self,
 		input_size: int,
 		output_size: int,
-		theory: list[z3.BoolRef],
-		variables: list[z3.BoolRef]=None,
+		theory: List[z3.BoolRef],
+		variables: List[z3.BoolRef]=None,
 		default_mask: torch.Tensor=None,
-		fixed_inputs: list[z3.BoolRef]=None,
+		fixed_inputs: List[z3.BoolRef]=None,
 		solverop: str='smt'
 	):
 		
